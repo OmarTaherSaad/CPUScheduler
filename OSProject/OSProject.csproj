@@ -62,11 +62,10 @@
     <Compile Include="CPUSchedulerForm.Designer.cs">
       <DependentUpon>CPUSchedulerForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="DataClasses.cs" />
-    <Compile Include="GanttChart.cs" />
     <Compile Include="Process.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Timeline.cs" />
     <EmbeddedResource Include="CPUSchedulerForm.resx">
       <DependentUpon>CPUSchedulerForm.cs</DependentUpon>
     </EmbeddedResource>

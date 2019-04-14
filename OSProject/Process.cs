@@ -19,8 +19,11 @@ namespace OSProject
         [Browsable(false)]
         public int RemainingTime => Duration - ExecutedTime;
         [DisplayName("Finished or not?")]
-        public bool Finished => RemainingTime == 0;
-        
+        public bool Finished
+        {
+            get => RemainingTime == 0;
+        }
+
 
         public Process(int comingTime, int duration, int priority = -1)
         {
