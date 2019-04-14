@@ -74,15 +74,20 @@ namespace OSProject
             //Non Preemptive
             var sortedProcesses = Processes.OrderBy(p => p.ComingTime).ThenBy(p => p.Duration).ToList();
             int timer = sortedProcesses.First().ComingTime;
-            foreach (var process in sortedProcesses)
+            while (sortedProcesses.Count(p => !p.Finished) > 0)
             {
-                if (timer < process.ComingTime)
+                //Get arrived processes and sort them by duration
+                var nextProcess = sortedProcesses.Where(p => p.ComingTime <= timer && !p.Finished).OrderBy(p => p.Duration).FirstOrDefault();
+                while (nextProcess is null)
                 {
-                    timer = process.ComingTime;
+                    timer++;
+                    nextProcess = sortedProcesses.FirstOrDefault(p => p.ComingTime <= timer && !p.Finished);
                 }
-                CpuTimeline.AddExecution(timer, timer + process.Duration, process);
-                process.ExecutedTime = process.Duration;
-                timer += process.Duration;
+                //Execute first shortest one
+                
+                CpuTimeline.AddExecution(timer, timer + nextProcess.Duration, nextProcess);
+                nextProcess.ExecutedTime = nextProcess.Duration;
+                timer += nextProcess.Duration;
             }
         }
         private static void Priority(bool isPreemptive = true)
@@ -136,6 +141,8 @@ namespace OSProject
 
             int h = (int) (p.Height * 0.15);
             int startPosition = 0;
+
+            g.Clear(Color.White);
             foreach (var executeInstance in CpuTimeline.Executes)
             {
                 startPosition = executeInstance.StartTime* ratio;
@@ -154,12 +161,14 @@ namespace OSProject
                 g.FillRectangle(new SolidBrush(Color.Black), Separator);
 
                 //End time
-                Separator = new Rectangle(startPosition + executeInstance.Duration * ratio, h, 10, (int)(p.Height * 0.5));
+                Separator = new Rectangle(startPosition + executeInstance.Duration * ratio, h, 1, (int)(p.Height * 0.5));
 
                 g.DrawString("T" + executeInstance.EndTime, new Font(new FontFamily("Arial"), 14), new SolidBrush(Color.Black), startPosition+executeInstance.Duration*ratio,(int)(p.Height*0.9));
                 g.DrawRectangle(new Pen(Color.Black), Separator);
                 g.FillRectangle(new SolidBrush(Color.Black), Separator);
             }
+
+            g.Save();
         }
 
         private void ScheduleBtn_Click(object sender, EventArgs e)
