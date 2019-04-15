@@ -25,7 +25,7 @@ namespace OSProject
         }
 
 
-        public Process(int comingTime, int duration, int priority = -1)
+        public Process(int comingTime, int duration, int priority = 0)
         {
             ComingTime = comingTime;
             Duration = duration;

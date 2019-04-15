@@ -16,7 +16,7 @@ namespace OSProject
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new CPUSchedulerForm());
+            Application.Run(new CpuSchedulerForm());
         }
     }
 }

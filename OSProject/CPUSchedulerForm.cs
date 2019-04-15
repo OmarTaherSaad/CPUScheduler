@@ -1,42 +1,34 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using MetroFramework.Forms;
 
 
 namespace OSProject
 {
-    public partial class CPUSchedulerForm : MetroForm
+    public partial class CpuSchedulerForm : MetroForm
     {
         public List<Process> Processes;
         public Timeline CpuTimeline;
 
-        public CPUSchedulerForm()
+        public CpuSchedulerForm()
         {
             InitializeComponent();
 
             Processes = new List<Process>();
             CpuTimeline = new Timeline();
 
-            //For testing only (SJF)
-            Processes.Add(new Process(0, 1));
-            Processes.Add(new Process(2, 2));
-            Processes.Add(new Process(2, 1));
-            Processes.Add(new Process(4, 3));
-        }
+            Processes.Add(new Process(0, 2, 1));
+            Processes.Add(new Process(1, 4, 2));
+            Processes.Add(new Process(4, 2, 1));
+            Processes.Add(new Process(5, 9, 0));
+            Processes.Add(new Process(12, 2, 1));
 
-        private void Form1_Load(object sender, EventArgs e)
-        {
-            
+            RefreshGridView();
+            ReInitializeProcesses();
         }
 
         private void TypeComboBox_SelectedIndexChanged(object sender, EventArgs e)
@@ -46,6 +38,13 @@ namespace OSProject
             if (!AddProcessBtn.Enabled)
             {
                 AddProcessBtn.Enabled = true;
+            }
+
+            //Renable Schedule button
+            if (!ScheduleBtn.Enabled)
+            {
+                ScheduleBtn.Enabled = true;
+                ScheduleBtn.Text = @"Schedule";
             }
             //Scheduler Type selected
             /*
@@ -62,18 +61,49 @@ namespace OSProject
                 ProcessPriority.Value = 0;
                 ProcessPriority.Hide();
                 ProcessPriorityLabel.Hide();
+                if (DataGridView != null && DataGridView.Columns.Count > 0)
+                {
+                    DataGridView.Columns["Priority"].Visible = false;
+                }
             }
             else
             {
                 ProcessPriority.Show();
                 ProcessPriorityLabel.Show();
+                if (DataGridView != null && DataGridView.Columns.Count > 0)
+                {
+                    DataGridView.Columns["Priority"].Visible = true;
+                }
             }
-            
+            //Hide RR time quanta input & label if selected schedule is not Round Robin
+            if (TypeComboBox.SelectedIndex != 5)
+            {
+                RoundRobinTimeQuanta.Hide();
+                RoundRobinTimeQuantaLabel.Hide();
+            }
+            else
+            {
+                RoundRobinTimeQuanta.Show();
+                RoundRobinTimeQuantaLabel.Show();
+            }
+
+
         }
 
-        private static void FCFS()
+        private void FCFS()
         {
-
+            var sortedProcesses = Processes.OrderBy(p => p.ComingTime).ToList();
+            int timer = sortedProcesses.First().ComingTime;
+            foreach (var process in sortedProcesses)
+            {
+                if (timer < process.ComingTime)
+                {
+                    timer = process.ComingTime;
+                }
+                CpuTimeline.AddExecution(timer, timer + process.Duration, process);
+                process.ExecutedTime = process.Duration;
+                timer += process.Duration;
+            }
         }
 
         private void SJF(bool isPreemptive = true)
@@ -122,10 +152,14 @@ namespace OSProject
                     {
                         //Same Process
                         var executed = CpuTimeline.Executes.Last().Duration;
+                        var startTime = CpuTimeline.Executes.Last().StartTime;
                         CpuTimeline.Executes.Remove(CpuTimeline.Executes.Last());
-                        CpuTimeline.AddExecution(timer, timer + executionTime + executed, nextProcess);
+                        CpuTimeline.AddExecution(startTime, timer + executionTime, nextProcess);
                     }
-                    CpuTimeline.AddExecution(timer, timer + executionTime, nextProcess);
+                    else
+                    {
+                        CpuTimeline.AddExecution(timer, timer + executionTime, nextProcess);
+                    }
                     nextProcess.ExecutedTime += executionTime;
                     timer += executionTime;
                 }
@@ -148,21 +182,111 @@ namespace OSProject
                     timer += nextProcess.Duration;
                 }
             }
-            DrawTimeline(true);
-        }
-        private static void Priority(bool isPreemptive = true)
-        {
-
         }
 
-        private static void RoundRobin()
+        private void Priority(bool isPreemptive = true)
         {
+            var sortedProcesses = Processes.OrderBy(p => p.ComingTime).ThenBy(p => p.Priority).ToList();
+            int timer = sortedProcesses.First().ComingTime;
 
+            if (isPreemptive) //Preemptive
+            {
+                while (sortedProcesses.Count(p => !p.Finished) > 0)
+                {
+                    //Get arrived processes and sort them by priority
+                    var nextProcess = sortedProcesses.Where(p => p.ComingTime <= timer && !p.Finished).OrderBy(p => p.Priority).FirstOrDefault();
+                    while (nextProcess is null)
+                    {
+                        timer++;
+                        nextProcess = sortedProcesses.FirstOrDefault(p => p.ComingTime <= timer && !p.Finished);
+                    }
+                    //Execute first high-priority one
+                    //Time to next coming process
+                    var executionTime = nextProcess.Duration;
+                    if (sortedProcesses.IndexOf(nextProcess) < sortedProcesses.Count() - 1)
+                    {
+                        Process first = null;
+                        foreach (var process in sortedProcesses.Where(p => p.ComingTime > nextProcess.ComingTime && !p.Finished).OrderBy(p => p.ComingTime).ThenBy(p => p.Priority))
+                        {
+                            first = process;
+                            break;
+                        }
+
+                        if (first != null)
+                        {
+                            executionTime = first.ComingTime - timer;
+                            if (executionTime == 0)
+                            {
+                                executionTime = nextProcess.RemainingTime;
+                            }
+                        }
+                        if (executionTime > nextProcess.RemainingTime)
+                        {
+                            executionTime = nextProcess.RemainingTime;
+                        }
+                    }
+
+                    if (nextProcess == CpuTimeline.Executes.LastOrDefault().Process)
+                    {
+                        //Same Process
+                        var executed = CpuTimeline.Executes.Last().Duration;
+                        var startTime = CpuTimeline.Executes.Last().StartTime;
+                        CpuTimeline.Executes.Remove(CpuTimeline.Executes.Last());
+                        CpuTimeline.AddExecution(startTime, timer + executionTime, nextProcess);
+                    }
+                    else
+                    {
+                        CpuTimeline.AddExecution(timer, timer + executionTime, nextProcess);
+                    }
+                    nextProcess.ExecutedTime += executionTime;
+                    timer += executionTime;
+                }
+            }
+            else //Non Preemptive
+            {
+                while (sortedProcesses.Count(p => !p.Finished) > 0)
+                {
+                    //Get arrived processes and sort them by priority
+                    var nextProcess = sortedProcesses.Where(p => p.ComingTime <= timer && !p.Finished).OrderBy(p => p.Priority).FirstOrDefault();
+                    while (nextProcess is null)
+                    {
+                        timer++;
+                        nextProcess = sortedProcesses.FirstOrDefault(p => p.ComingTime <= timer && !p.Finished);
+                    }
+                    //Execute first high-priority one
+
+                    CpuTimeline.AddExecution(timer, timer + nextProcess.Duration, nextProcess);
+                    nextProcess.ExecutedTime = nextProcess.Duration;
+                    timer += nextProcess.Duration;
+                }
+            }
         }
 
-        private void ProcessCount_ValueChanged(object sender, EventArgs e)
+        private void RoundRobin()
         {
+            int quanta = (int)RoundRobinTimeQuanta.Value;
+            var sortedProcesses = Processes.OrderBy(p => p.ComingTime).ToList();
+            int timer = sortedProcesses.First().ComingTime;
 
+            while (sortedProcesses.Count(p => !p.Finished) > 0)
+            {
+                //Get arrived processes and sort them by coming time
+                var nextProcess = sortedProcesses.Where(p => p.ComingTime <= timer && !p.Finished).OrderBy(p => p.ComingTime).FirstOrDefault();
+                while (nextProcess is null)
+                {
+                    timer++;
+                    nextProcess = sortedProcesses.FirstOrDefault(p => p.ComingTime <= timer && !p.Finished);
+                }
+                //Time to really execute
+                var executionTime = nextProcess.RemainingTime;
+                if (executionTime > quanta)
+                {
+                    executionTime = quanta;
+                }
+                CpuTimeline.AddExecution(timer, timer + executionTime, nextProcess);
+                nextProcess.ExecutedTime += executionTime;
+                timer += quanta;
+            }
         }
 
         private void AddProcessBtn_Click(object sender, EventArgs e)
@@ -178,11 +302,20 @@ namespace OSProject
             ReInitializeProcesses();
 
             RefreshGridView();
+
+            //Renable Schedule button
+            if (!ScheduleBtn.Enabled)
+            {
+                ScheduleBtn.Enabled = true;
+                ScheduleBtn.Text = @"Schedule";
+            }
         }
 
         private void ResetBtn_Click(object sender, EventArgs e)
         {
             Processes.Clear();
+            CpuTimeline.Executes.Clear();
+            panel1.Invalidate();
             RefreshGridView();
             
         }
@@ -196,6 +329,9 @@ namespace OSProject
 
         private void ScheduleBtn_Click(object sender, EventArgs e)
         {
+            ScheduleBtn.Text = @"Scheduling..";
+            ScheduleBtn.Enabled = false;
+            AverageWaitingTimeValue.Text = @"(Not Set Yet)";
             //Check existence of processes
             if (!Processes.Any())
             {
@@ -236,6 +372,9 @@ namespace OSProject
                     RoundRobin();
                     break;
             }
+            DrawTimeline(true);
+            ScheduleBtn.Text = @"Scheduled";
+            AverageWaitingTimeValue.Text = GetAverageWaitingTime() + @" seconds";
         }
 
         private void panel1_Click(object sender, EventArgs e)
@@ -255,8 +394,10 @@ namespace OSProject
         {
             if (!CpuTimeline.Executes.Any())
             {
+                panel1.CreateGraphics().Clear(Color.White);
                 return;
             }
+
             var p = panel1;
             var g = p.CreateGraphics();
             //Total time and mapping it to total width
@@ -277,39 +418,37 @@ namespace OSProject
             g.Clear(Color.White);
             foreach (var executeInstance in CpuTimeline.Executes.OrderBy(ex => ex.StartTime))
             {
-                var startPosition = executeInstance.StartTime * ratio;
-                if (startPosition == 0)
-                {
-                    startPosition = 10;
-                }
+                var startPosition = 10 + executeInstance.StartTime * ratio;
+
                 //Execution rectangle
-                var rectangle = new Rectangle(startPosition, h, (int)(executeInstance.Duration * ratio), (int)(p.Height * 0.5));
+                var rectangle = new Rectangle(startPosition, h, executeInstance.Duration * ratio, (int)(p.Height * 0.5));
                 g.DrawRectangle(new Pen(Color.Black), rectangle);
                 g.FillRectangle(new SolidBrush(Color.Red), rectangle);
                 //Process Title
                 g.DrawString("P" + Processes.IndexOf(executeInstance.Process), new Font(new FontFamily("Arial"), 16), new SolidBrush(Color.AliceBlue), startPosition, h);
 
                 //Start time
-                var Separator = new Rectangle(startPosition, h, 1, (int)(p.Height * 0.5));
+                var separator = new Rectangle(startPosition, h, 1, (int)(p.Height * 0.5));
 
                 var font = new Font(new FontFamily("Arial"), 14);
                 var brush = new SolidBrush(Color.Black);
                 g.DrawString("T" + executeInstance.StartTime, font, brush, startPosition - 10, (int)(p.Height * 0.7));
-                g.DrawRectangle(new Pen(Color.Black), Separator);
-                g.FillRectangle(new SolidBrush(Color.Black), Separator);
+                g.FillRectangle(new SolidBrush(Color.Black), separator);
 
                 //End time
-                Separator = new Rectangle(startPosition + executeInstance.Duration * ratio, h, 1, (int)(p.Height * 0.5));
+                separator = new Rectangle(startPosition + executeInstance.Duration * ratio, h, 1, (int)(p.Height * 0.5));
 
                 g.DrawString("T" + executeInstance.EndTime, font, brush, startPosition + executeInstance.Duration * ratio - 10, (int)(p.Height * 0.7));
-                g.DrawRectangle(new Pen(Color.Black), Separator);
-                g.FillRectangle(new SolidBrush(Color.Black), Separator);
+                //g.DrawRectangle(new Pen(Color.Black), separator);
+                g.FillRectangle(new SolidBrush(Color.Black), separator);
 
                 if (live)
                 {
+                    RefreshGridView();
                     System.Threading.Thread.Sleep(700);
                 }
             }
+            RefreshGridView();
         }
 
         private void ReInitializeProcesses()
@@ -319,6 +458,26 @@ namespace OSProject
                 process.ExecutedTime = 0;
             }
             CpuTimeline.Executes.Clear();
+        }
+
+        private void RoundRobinTimeQuanta_ValueChanged(object sender, EventArgs e)
+        {
+            //Renable Schedule button
+            if (!ScheduleBtn.Enabled)
+            {
+                ScheduleBtn.Enabled = true;
+                ScheduleBtn.Text = @"Schedule";
+            }
+        }
+
+        private float GetAverageWaitingTime()
+        {
+            float awt = 0; //Average Waiting Time
+            foreach (var process in Processes)
+            {
+                awt += CpuTimeline.Executes.FirstOrDefault(ex => ex.Process == process).StartTime - process.ComingTime;
+            }
+            return awt/Processes.Count;
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿namespace OSProject
 {
-    partial class CPUSchedulerForm
+    partial class CpuSchedulerForm
     {
         /// <summary>
         /// Required designer variable.
@@ -47,6 +47,10 @@
             this.contextMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.ParentPanel = new System.Windows.Forms.Panel();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.RoundRobinTimeQuanta = new System.Windows.Forms.NumericUpDown();
+            this.RoundRobinTimeQuantaLabel = new System.Windows.Forms.Label();
+            this.AverageWaitingTimeLabel = new System.Windows.Forms.Label();
+            this.AverageWaitingTimeValue = new System.Windows.Forms.Label();
             this.ProcessGroupBox.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.DataGridView)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.ProcessDuration)).BeginInit();
@@ -54,6 +58,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.ProcessComingTime)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.programBindingSource)).BeginInit();
             this.ParentPanel.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.RoundRobinTimeQuanta)).BeginInit();
             this.SuspendLayout();
             // 
             // TypeComboBox
@@ -94,6 +99,7 @@
             // 
             // DataGridView
             // 
+            this.DataGridView.AllowDrop = true;
             this.DataGridView.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
@@ -107,9 +113,11 @@
             // 
             // label1
             // 
+            this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.label1.AutoSize = true;
             this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label1.Location = new System.Drawing.Point(323, 643);
+            this.label1.Location = new System.Drawing.Point(313, 646);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(619, 20);
             this.label1.TabIndex = 4;
@@ -156,6 +164,7 @@
             this.ProcessPriority.Name = "ProcessPriority";
             this.ProcessPriority.Size = new System.Drawing.Size(90, 34);
             this.ProcessPriority.TabIndex = 3;
+            this.ProcessPriority.Visible = false;
             // 
             // ProcessPriorityLabel
             // 
@@ -164,6 +173,7 @@
             this.ProcessPriorityLabel.Size = new System.Drawing.Size(107, 59);
             this.ProcessPriorityLabel.TabIndex = 7;
             this.ProcessPriorityLabel.Text = "Process Priority";
+            this.ProcessPriorityLabel.Visible = false;
             // 
             // ProcessComingTime
             // 
@@ -183,7 +193,7 @@
             // AddProcessBtn
             // 
             this.AddProcessBtn.Enabled = false;
-            this.AddProcessBtn.Location = new System.Drawing.Point(770, 127);
+            this.AddProcessBtn.Location = new System.Drawing.Point(494, 123);
             this.AddProcessBtn.Name = "AddProcessBtn";
             this.AddProcessBtn.Size = new System.Drawing.Size(162, 41);
             this.AddProcessBtn.TabIndex = 4;
@@ -212,27 +222,83 @@
             this.ParentPanel.Location = new System.Drawing.Point(490, 174);
             this.ParentPanel.Margin = new System.Windows.Forms.Padding(10);
             this.ParentPanel.Name = "ParentPanel";
-            this.ParentPanel.Size = new System.Drawing.Size(710, 447);
+            this.ParentPanel.Size = new System.Drawing.Size(710, 392);
             this.ParentPanel.TabIndex = 9;
             // 
             // panel1
             // 
             this.panel1.Location = new System.Drawing.Point(3, 3);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(684, 426);
+            this.panel1.Size = new System.Drawing.Size(684, 369);
             this.panel1.TabIndex = 0;
             this.panel1.Click += new System.EventHandler(this.panel1_Click);
             this.panel1.Paint += new System.Windows.Forms.PaintEventHandler(this.panel1_Paint);
             // 
-            // CPUSchedulerForm
+            // RoundRobinTimeQuanta
+            // 
+            this.RoundRobinTimeQuanta.Location = new System.Drawing.Point(1110, 127);
+            this.RoundRobinTimeQuanta.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.RoundRobinTimeQuanta.Name = "RoundRobinTimeQuanta";
+            this.RoundRobinTimeQuanta.Size = new System.Drawing.Size(90, 34);
+            this.RoundRobinTimeQuanta.TabIndex = 3;
+            this.RoundRobinTimeQuanta.Value = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.RoundRobinTimeQuanta.Visible = false;
+            this.RoundRobinTimeQuanta.ValueChanged += new System.EventHandler(this.RoundRobinTimeQuanta_ValueChanged);
+            // 
+            // RoundRobinTimeQuantaLabel
+            // 
+            this.RoundRobinTimeQuantaLabel.Location = new System.Drawing.Point(900, 129);
+            this.RoundRobinTimeQuantaLabel.Name = "RoundRobinTimeQuantaLabel";
+            this.RoundRobinTimeQuantaLabel.Size = new System.Drawing.Size(204, 26);
+            this.RoundRobinTimeQuantaLabel.TabIndex = 7;
+            this.RoundRobinTimeQuantaLabel.Text = "RR Time Quanta";
+            this.RoundRobinTimeQuantaLabel.Visible = false;
+            // 
+            // AverageWaitingTimeLabel
+            // 
+            this.AverageWaitingTimeLabel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.AverageWaitingTimeLabel.AutoSize = true;
+            this.AverageWaitingTimeLabel.Location = new System.Drawing.Point(766, 586);
+            this.AverageWaitingTimeLabel.Name = "AverageWaitingTimeLabel";
+            this.AverageWaitingTimeLabel.Size = new System.Drawing.Size(250, 29);
+            this.AverageWaitingTimeLabel.TabIndex = 10;
+            this.AverageWaitingTimeLabel.Text = "Average Waiting Time";
+            // 
+            // AverageWaitingTimeValue
+            // 
+            this.AverageWaitingTimeValue.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.AverageWaitingTimeValue.AutoSize = true;
+            this.AverageWaitingTimeValue.ForeColor = System.Drawing.Color.Red;
+            this.AverageWaitingTimeValue.Location = new System.Drawing.Point(1018, 586);
+            this.AverageWaitingTimeValue.Name = "AverageWaitingTimeValue";
+            this.AverageWaitingTimeValue.RightToLeft = System.Windows.Forms.RightToLeft.No;
+            this.AverageWaitingTimeValue.Size = new System.Drawing.Size(142, 29);
+            this.AverageWaitingTimeValue.TabIndex = 11;
+            this.AverageWaitingTimeValue.Text = "(Not set yet)";
+            // 
+            // CpuSchedulerForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(14F, 29F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1207, 667);
+            this.Controls.Add(this.AverageWaitingTimeValue);
+            this.Controls.Add(this.AverageWaitingTimeLabel);
             this.Controls.Add(this.ParentPanel);
             this.Controls.Add(this.AddProcessBtn);
             this.Controls.Add(this.ProcessComingTimeLabel);
             this.Controls.Add(this.ProcessComingTime);
+            this.Controls.Add(this.RoundRobinTimeQuantaLabel);
+            this.Controls.Add(this.RoundRobinTimeQuanta);
             this.Controls.Add(this.ProcessPriorityLabel);
             this.Controls.Add(this.ProcessPriority);
             this.Controls.Add(this.ProcessDurationLabel);
@@ -245,10 +311,9 @@
             this.Controls.Add(this.TypeComboBox);
             this.Font = new System.Drawing.Font("Microsoft Sans Serif", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.Margin = new System.Windows.Forms.Padding(5);
-            this.Name = "CPUSchedulerForm";
+            this.Name = "CpuSchedulerForm";
             this.Padding = new System.Windows.Forms.Padding(35, 109, 35, 36);
             this.Text = "CPU Scheduler (G46)";
-            this.Load += new System.EventHandler(this.Form1_Load);
             this.ProcessGroupBox.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.DataGridView)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.ProcessDuration)).EndInit();
@@ -256,6 +321,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.ProcessComingTime)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.programBindingSource)).EndInit();
             this.ParentPanel.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.RoundRobinTimeQuanta)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -281,6 +347,10 @@
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip;
         private System.Windows.Forms.Panel ParentPanel;
         private System.Windows.Forms.Panel panel1;
+        private System.Windows.Forms.NumericUpDown RoundRobinTimeQuanta;
+        private System.Windows.Forms.Label RoundRobinTimeQuantaLabel;
+        private System.Windows.Forms.Label AverageWaitingTimeLabel;
+        private System.Windows.Forms.Label AverageWaitingTimeValue;
     }
 }
 
