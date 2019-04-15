@@ -45,6 +45,7 @@
             this.AddProcessBtn = new System.Windows.Forms.Button();
             this.programBindingSource = new System.Windows.Forms.BindingSource(this.components);
             this.contextMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.ParentPanel = new System.Windows.Forms.Panel();
             this.panel1 = new System.Windows.Forms.Panel();
             this.ProcessGroupBox.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.DataGridView)).BeginInit();
@@ -52,6 +53,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.ProcessPriority)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.ProcessComingTime)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.programBindingSource)).BeginInit();
+            this.ParentPanel.SuspendLayout();
             this.SuspendLayout();
             // 
             // TypeComboBox
@@ -96,6 +98,7 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.DataGridView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.DataGridView.EditMode = System.Windows.Forms.DataGridViewEditMode.EditOnEnter;
             this.DataGridView.Location = new System.Drawing.Point(6, 33);
             this.DataGridView.Name = "DataGridView";
             this.DataGridView.RowTemplate.Height = 24;
@@ -198,22 +201,35 @@
             this.contextMenuStrip.Name = "contextMenuStrip";
             this.contextMenuStrip.Size = new System.Drawing.Size(61, 4);
             // 
-            // panel1
+            // ParentPanel
             // 
-            this.panel1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            this.ParentPanel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.panel1.Location = new System.Drawing.Point(490, 174);
+            this.ParentPanel.AutoScroll = true;
+            this.ParentPanel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.ParentPanel.Controls.Add(this.panel1);
+            this.ParentPanel.Location = new System.Drawing.Point(490, 174);
+            this.ParentPanel.Margin = new System.Windows.Forms.Padding(10);
+            this.ParentPanel.Name = "ParentPanel";
+            this.ParentPanel.Size = new System.Drawing.Size(710, 447);
+            this.ParentPanel.TabIndex = 9;
+            // 
+            // panel1
+            // 
+            this.panel1.Location = new System.Drawing.Point(3, 3);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(710, 454);
-            this.panel1.TabIndex = 9;
+            this.panel1.Size = new System.Drawing.Size(684, 426);
+            this.panel1.TabIndex = 0;
+            this.panel1.Click += new System.EventHandler(this.panel1_Click);
+            this.panel1.Paint += new System.Windows.Forms.PaintEventHandler(this.panel1_Paint);
             // 
             // CPUSchedulerForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(14F, 29F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1207, 667);
-            this.Controls.Add(this.panel1);
+            this.Controls.Add(this.ParentPanel);
             this.Controls.Add(this.AddProcessBtn);
             this.Controls.Add(this.ProcessComingTimeLabel);
             this.Controls.Add(this.ProcessComingTime);
@@ -239,6 +255,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.ProcessPriority)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.ProcessComingTime)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.programBindingSource)).EndInit();
+            this.ParentPanel.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -262,6 +279,7 @@
         private System.Windows.Forms.BindingSource programBindingSource;
         private System.Windows.Forms.DataGridView DataGridView;
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip;
+        private System.Windows.Forms.Panel ParentPanel;
         private System.Windows.Forms.Panel panel1;
     }
 }
